@@ -21,7 +21,7 @@ class ViewController: UIViewController {
         $0.borderStyle = .roundedRect
         $0.keyboardType = .numberPad
         return $0
-    }(UITextField())
+    }(UITextField()) // クロージャにUIのインスタンスを渡して初期化する方法はあまり見たことないですね
 
     private let secondTextField: UITextField = {
         $0.placeholder = "数値を入力"
@@ -101,7 +101,7 @@ class ViewController: UIViewController {
         }
         secondTextField.snp.makeConstraints {
             $0.centerX.equalToSuperview()
-            $0.top.equalToSuperview().offset(150)
+            $0.top.equalToSuperview().offset(150) // UIをアダプティブにするためには、親Viewとの関係性ではなく兄弟Viewとの位置関係を指定すべきだと思います
         }
         operationsSegmentedControl.snp.makeConstraints {
             $0.centerX.equalToSuperview()
