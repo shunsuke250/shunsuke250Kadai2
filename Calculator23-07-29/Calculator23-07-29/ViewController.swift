@@ -11,12 +11,17 @@ import SwiftUI
 
 class ViewController: UIViewController {
 
+    enum Error: Swift.Error {
+        case invalidStringConversion
+        case operatorNotSelected
+    }
+
     private let firstTextField: UITextField = {
         $0.placeholder = "数値を入力"
         $0.borderStyle = .roundedRect
         $0.keyboardType = .numberPad
         return $0
-    }(UITextField())
+    }(UITextField()) // クロージャにUIのインスタンスを渡して初期化する方法はあまり見たことないですね
 
     private let secondTextField: UITextField = {
         $0.placeholder = "数値を入力"
@@ -46,27 +51,30 @@ class ViewController: UIViewController {
         view.backgroundColor = .white
         setConstrains()
 
-        calculateButton.addAction(.init { _ in
-            let answer = self.calculate()
-            // Validation
-            if answer == 0 {
-                self.answerLabel.text = "エラーが発生しました"
-            } else if answer == 1 {
-                self.answerLabel.text = "演算子を選択してください"
-            } else {
-                self.answerLabel.text = ("\(answer)")
+        calculateButton.addAction(.init { [weak self] _ in
+            guard let strongSelf = self else { return }
+
+            do {
+                let answer = try strongSelf.calculate()
+                strongSelf.answerLabel.text = ("\(answer)")
+            } catch Error.operatorNotSelected {
+                strongSelf.answerLabel.text = "演算子を選択してください"
+            } catch {
+                strongSelf.answerLabel.text = "エラーが発生しました"
             }
         }, for: .touchUpInside)
     }
 
-    func calculate() -> Double {
+    func calculate() throws -> Double {
         guard let num1 = Double(firstTextField.text ?? "0"),
               let num2 = Double(secondTextField.text ?? "0") else {
-            return 0 // Error
+            throw Error.invalidStringConversion
         }
         let operation = operationsSegmentedControl.selectedSegmentIndex
 
         switch operation {
+        case -1:
+            throw Error.operatorNotSelected
         case 0:
             return Double(num1 + num2)
         case 1:
@@ -76,7 +84,7 @@ class ViewController: UIViewController {
         case 3:
             return Double(num1 / num2)
         default:
-            return 1 // Error
+            fatalError("selectedSegmentIndex is invalid.")
         }
     }
 
@@ -93,7 +101,7 @@ class ViewController: UIViewController {
         }
         secondTextField.snp.makeConstraints {
             $0.centerX.equalToSuperview()
-            $0.top.equalToSuperview().offset(150)
+            $0.top.equalToSuperview().offset(150) // UIをアダプティブにするためには、親Viewとの関係性ではなく兄弟Viewとの位置関係を指定すべきだと思います
         }
         operationsSegmentedControl.snp.makeConstraints {
             $0.centerX.equalToSuperview()
